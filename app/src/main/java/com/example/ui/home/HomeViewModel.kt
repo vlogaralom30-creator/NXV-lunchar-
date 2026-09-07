@@ -19,6 +19,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+import com.example.data.model.AnimeCharacter
+import com.example.data.model.AnimeThemeState
+
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = LauncherDatabase.getDatabase(application)
@@ -27,6 +30,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val launcherLayoutRepository = LauncherLayoutRepository(db.launcherDao())
 
     val themeConfig: StateFlow<ThemeConfig> = preferencesManager.themeConfig
+
+    private val _animeThemeState = MutableStateFlow(AnimeThemeState())
+    val animeThemeState: StateFlow<AnimeThemeState> = _animeThemeState.asStateFlow()
 
     val installedApps: StateFlow<List<AppItem>> = appManagerRepository.installedApps
     val recentApps: StateFlow<List<AppItem>> = appManagerRepository.recentApps
@@ -112,6 +118,22 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateThemeConfig(updateBlock: (ThemeConfig) -> ThemeConfig) {
         preferencesManager.updateThemeConfig(updateBlock)
+    }
+
+    fun selectAnimeCharacter(character: AnimeCharacter) {
+        _animeThemeState.value = _animeThemeState.value.copy(selectedCharacter = character)
+    }
+
+    fun toggleNavbar(enabled: Boolean) {
+        _animeThemeState.value = _animeThemeState.value.copy(isNavbarEnabled = enabled)
+    }
+
+    fun selectLanguage(lang: String) {
+        _animeThemeState.value = _animeThemeState.value.copy(selectedLanguage = lang)
+    }
+
+    fun setCustomCharacterUri(uri: String?) {
+        _animeThemeState.value = _animeThemeState.value.copy(customCharacterUri = uri)
     }
 
     override fun onCleared() {

@@ -62,6 +62,16 @@ import com.example.ui.theme.LauncherThemeEngine
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import com.example.ui.anime.AnimeCharacterSheet
+import com.example.ui.anime.AnimeHeroHeader
+import com.example.ui.anime.AnimeIconGrid
+import com.example.ui.anime.DeviceStatsCard
+import com.example.ui.anime.ProfileWeatherCard
+import com.example.ui.anime.VinylMusicWidget
+import com.example.ui.anime.WorldMapCard
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -69,6 +79,7 @@ fun HomeScreen(
     onOpenSettings: () -> Unit
 ) {
     val themeConfig by viewModel.themeConfig.collectAsStateWithLifecycle()
+    val animeThemeState by viewModel.animeThemeState.collectAsStateWithLifecycle()
     val installedApps by viewModel.installedApps.collectAsStateWithLifecycle()
     val recentApps by viewModel.recentApps.collectAsStateWithLifecycle()
     val homeGridItems by viewModel.homeGridItems.collectAsStateWithLifecycle()
@@ -80,11 +91,13 @@ fun HomeScreen(
 
     var showDrawer by remember { mutableStateOf(false) }
     var showSearch by remember { mutableStateOf(false) }
+    var showCharacterSheet by remember { mutableStateOf(false) }
     var selectedContextMenuFolder by remember { mutableStateOf<HomeItem.Folder?>(null) }
     var selectedContextMenuItem by remember { mutableStateOf<HomeItem?>(null) }
 
     val drawerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val searchSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val characterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val pagerState = rememberPagerState(pageCount = { themeConfig.homePageCount })
     val coroutineScope = rememberCoroutineScope()
@@ -200,56 +213,107 @@ fun HomeScreen(
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
             )
 
-            // Multi-Page Grid Horizontal Pager with customizable Page Transitions
+            // Multi-Page Horizontal Pager: Page 0 is Anime Launcher; Page 1+ is Grid
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.weight(1f)
             ) { pageIndex ->
-                val pageItems = homeGridItems.filter { it.position.pageIndex == pageIndex }
+                if (pageIndex == 0) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(bottom = 12.dp)
+                    ) {
+                        AnimeHeroHeader(
+                            animeThemeState = animeThemeState,
+                            onOpenCharacterSheet = { showCharacterSheet = true },
+                            onQuickNavClick = { pkg -> handleLaunchApp(pkg) }
+                        )
 
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(themeConfig.gridConfig.cols),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(16.dp),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .homePageTransition(pageIndex, pagerState, animConfig)
-                ) {
-                    items(pageItems, key = { it.id }) { item ->
-                        when (item) {
-                            is HomeItem.App -> {
-                                val app = appMap[item.packageName]
-                                val label = item.customLabel ?: app?.label ?: item.packageName
-                                val icon = app?.iconBitmap
+                        Spacer(modifier = Modifier.height(14.dp))
 
-                                AppIconItem(
-                                    label = label,
-                                    iconBitmap = icon,
-                                    iconSize = themeConfig.iconSizeDp.dp,
-                                    iconShape = themeConfig.iconShape,
-                                    showLabel = themeConfig.showAppLabels,
-                                    labelSizeSp = themeConfig.appLabelSizeSp,
-                                    labelColor = Color(android.graphics.Color.parseColor(themeConfig.appLabelColorHex)),
-                                    enableAnimation = animConfig.animationsEnabled,
-                                    onClick = { handleLaunchApp(item.packageName) },
-                                    onLongClick = { selectedContextMenuItem = item }
-                                )
+                        VinylMusicWidget(
+                            animeState = animeThemeState,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        DeviceStatsCard(
+                            animeState = animeThemeState,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        ProfileWeatherCard(
+                            animeState = animeThemeState,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        WorldMapCard(
+                            animeState = animeThemeState,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        AnimeIconGrid(
+                            onLaunchApp = { handleLaunchApp(it) },
+                            onOpenDrawer = { showDrawer = true },
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
+                } else {
+                    val pageItems = homeGridItems.filter { it.position.pageIndex == pageIndex }
+
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(themeConfig.gridConfig.cols),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(16.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .homePageTransition(pageIndex, pagerState, animConfig)
+                    ) {
+                        items(pageItems, key = { it.id }) { item ->
+                            when (item) {
+                                is HomeItem.App -> {
+                                    val app = appMap[item.packageName]
+                                    val label = item.customLabel ?: app?.label ?: item.packageName
+                                    val icon = app?.iconBitmap
+
+                                    AppIconItem(
+                                        label = label,
+                                        iconBitmap = icon,
+                                        iconSize = themeConfig.iconSizeDp.dp,
+                                        iconShape = themeConfig.iconShape,
+                                        showLabel = themeConfig.showAppLabels,
+                                        labelSizeSp = themeConfig.appLabelSizeSp,
+                                        labelColor = Color(android.graphics.Color.parseColor(themeConfig.appLabelColorHex)),
+                                        enableAnimation = animConfig.animationsEnabled,
+                                        onClick = { handleLaunchApp(item.packageName) },
+                                        onLongClick = { selectedContextMenuItem = item }
+                                    )
+                                }
+                                is HomeItem.Folder -> {
+                                    FolderIconPreview(
+                                        folder = item,
+                                        appMap = appMap,
+                                        iconSize = themeConfig.iconSizeDp.dp,
+                                        iconShape = themeConfig.iconShape,
+                                        showLabel = themeConfig.showAppLabels,
+                                        labelSizeSp = themeConfig.appLabelSizeSp,
+                                        labelColor = Color(android.graphics.Color.parseColor(themeConfig.appLabelColorHex)),
+                                        onClick = { selectedContextMenuFolder = item },
+                                        onLongClick = { selectedContextMenuItem = item }
+                                    )
+                                }
+                                else -> {}
                             }
-                            is HomeItem.Folder -> {
-                                FolderIconPreview(
-                                    folder = item,
-                                    appMap = appMap,
-                                    iconSize = themeConfig.iconSizeDp.dp,
-                                    iconShape = themeConfig.iconShape,
-                                    showLabel = themeConfig.showAppLabels,
-                                    labelSizeSp = themeConfig.appLabelSizeSp,
-                                    labelColor = Color(android.graphics.Color.parseColor(themeConfig.appLabelColorHex)),
-                                    onClick = { selectedContextMenuFolder = item },
-                                    onLongClick = { selectedContextMenuItem = item }
-                                )
-                            }
-                            else -> {}
                         }
                     }
                 }
@@ -342,6 +406,18 @@ fun HomeScreen(
                 onRemoveFromHome = { itemId -> viewModel.removeItemFromHome(itemId) },
                 onUninstall = { packageName -> viewModel.requestUninstallApp(packageName) },
                 onPinFavorite = { packageName -> viewModel.pinFavorite(packageName) }
+            )
+        }
+
+        // Anime Character Switcher Bottom Sheet
+        if (showCharacterSheet) {
+            AnimeCharacterSheet(
+                animeThemeState = animeThemeState,
+                sheetState = characterSheetState,
+                onDismiss = { showCharacterSheet = false },
+                onSelectCharacter = { character -> viewModel.selectAnimeCharacter(character) },
+                onToggleNavbar = { enabled -> viewModel.toggleNavbar(enabled) },
+                onSelectLanguage = { lang -> viewModel.selectLanguage(lang) }
             )
         }
     }
