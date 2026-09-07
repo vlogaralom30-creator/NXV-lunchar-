@@ -47,7 +47,8 @@ fun AnimeCharacterSheet(
     onDismiss: () -> Unit,
     onSelectCharacter: (AnimeCharacter) -> Unit,
     onToggleNavbar: (Boolean) -> Unit,
-    onSelectLanguage: (String) -> Unit
+    onSelectLanguage: (String) -> Unit,
+    onOpenWallpaperManager: () -> Unit = {}
 ) {
     val activeCharacter = animeThemeState.selectedCharacter
     val accentColor = Color(android.graphics.Color.parseColor(activeCharacter.accentColorHex))
@@ -191,7 +192,27 @@ fun AnimeCharacterSheet(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Wallpaper Manager Button
+            Button(
+                onClick = {
+                    onDismiss()
+                    onOpenWallpaperManager()
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E293B)),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth().height(44.dp).border(1.dp, accentColor, RoundedCornerShape(12.dp))
+            ) {
+                Text(
+                    text = "OPEN WALLPAPER MANAGER",
+                    color = accentColor,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 1.5.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Close / Apply Button
             Button(

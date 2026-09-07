@@ -70,7 +70,9 @@ import com.example.ui.anime.AnimeIconGrid
 import com.example.ui.anime.DeviceStatsCard
 import com.example.ui.anime.ProfileWeatherCard
 import com.example.ui.anime.VinylMusicWidget
+import com.example.ui.anime.WallpaperPickerSheet
 import com.example.ui.anime.WorldMapCard
+import com.example.ui.animation.AnimeWipeTransitionLayout
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,12 +94,14 @@ fun HomeScreen(
     var showDrawer by remember { mutableStateOf(false) }
     var showSearch by remember { mutableStateOf(false) }
     var showCharacterSheet by remember { mutableStateOf(false) }
+    var showWallpaperSheet by remember { mutableStateOf(false) }
     var selectedContextMenuFolder by remember { mutableStateOf<HomeItem.Folder?>(null) }
     var selectedContextMenuItem by remember { mutableStateOf<HomeItem?>(null) }
 
     val drawerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val searchSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val characterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val wallpaperSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val pagerState = rememberPagerState(pageCount = { themeConfig.homePageCount })
     val coroutineScope = rememberCoroutineScope()
@@ -343,26 +347,31 @@ fun HomeScreen(
             )
         }
 
-        // App Drawer Sheet
+        // App Drawer Sheet with Anime Katana Slash / Wipe Transition
         if (showDrawer) {
-            AppDrawerSheet(
-                installedApps = installedApps,
-                recentApps = recentApps,
-                iconShape = themeConfig.iconShape,
-                sortOrder = themeConfig.appDrawerSortOrder,
-                sheetState = drawerSheetState,
-                animationConfig = animConfig,
-                onDismiss = { showDrawer = false },
-                onAppClick = { packageName ->
-                    handleLaunchApp(packageName)
-                    showDrawer = false
-                },
-                onAppLongClick = { app ->
-                    viewModel.addAppToHome(app, pagerState.currentPage, 0, 0)
-                    showDrawer = false
-                },
-                onToggleSortOrder = { viewModel.toggleSortOrder() }
-            )
+            AnimeWipeTransitionLayout(
+                visible = showDrawer,
+                character = animeThemeState.selectedCharacter
+            ) {
+                AppDrawerSheet(
+                    installedApps = installedApps,
+                    recentApps = recentApps,
+                    iconShape = themeConfig.iconShape,
+                    sortOrder = themeConfig.appDrawerSortOrder,
+                    sheetState = drawerSheetState,
+                    animationConfig = animConfig,
+                    onDismiss = { showDrawer = false },
+                    onAppClick = { packageName ->
+                        handleLaunchApp(packageName)
+                        showDrawer = false
+                    },
+                    onAppLongClick = { app ->
+                        viewModel.addAppToHome(app, pagerState.currentPage, 0, 0)
+                        showDrawer = false
+                    },
+                    onToggleSortOrder = { viewModel.toggleSortOrder() }
+                )
+            }
         }
 
         // Universal Search Sheet
@@ -417,7 +426,17 @@ fun HomeScreen(
                 onDismiss = { showCharacterSheet = false },
                 onSelectCharacter = { character -> viewModel.selectAnimeCharacter(character) },
                 onToggleNavbar = { enabled -> viewModel.toggleNavbar(enabled) },
-                onSelectLanguage = { lang -> viewModel.selectLanguage(lang) }
+                onSelectLanguage = { lang -> viewModel.selectLanguage(lang) },
+                onOpenWallpaperManager = { showWallpaperSheet = true }
+            )
+        }
+
+        // Wallpaper Manager Sheet
+        if (showWallpaperSheet) {
+            WallpaperPickerSheet(
+                character = animeThemeState.selectedCharacter,
+                sheetState = wallpaperSheetState,
+                onDismiss = { showWallpaperSheet = false }
             )
         }
     }
