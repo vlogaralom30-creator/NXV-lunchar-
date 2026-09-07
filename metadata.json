@@ -1,0 +1,6 @@
+{
+  "name": "NXV Launcher",
+  "description": "A fast, lightweight, highly customizable Android Home Launcher with a clean premium UI by Naxxivo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
