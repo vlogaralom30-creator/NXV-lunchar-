@@ -34,6 +34,7 @@ jobs:
 
       - name: Ensure Executable Gradlew
         run: |
+          sed -i 's/\r$//' gradlew || true
           if [ ! -f gradlew ]; then
             echo "Gradlew script not found, initializing wrapper..."
             gradle wrapper
@@ -42,7 +43,7 @@ jobs:
 
       - name: Build Debug APK
         env:
-          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dkotlin.compiler.execution.strategy=in-process"
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx3072m -Dkotlin.compiler.execution.strategy=in-process -Dorg.gradle.parallel=true"
         run: ./gradlew assembleDebug --no-daemon -Dkotlin.compiler.execution.strategy=in-process --stacktrace
 
       - name: Upload APK Artifact
