@@ -45,8 +45,12 @@ enum class AnimeCharacter(
 data class AnimeThemeState(
     val selectedCharacter: AnimeCharacter = AnimeCharacter.LUFFY,
     val isNavbarEnabled: Boolean = true,
+    val isAnimeIconPackEnabled: Boolean = true,
     val selectedLanguage: String = "EN",
     val customCharacterUri: String? = null,
     val userName: String = "Chris Young",
-    val userLocation: String = "Kecamatan Kemayoran, Indonesia"
+    val userLocation: String = "Kecamatan Kemayoran, Indonesia",
+    val widgetCornerRadiusDp: Int = 22,
+    val widgetOpacity: Float = 0.85f,
+    val widgetStyle: String = "GLASS_NEON" // GLASS_NEON, MINIMAL_SOLID, CYBER_TRANSLUCENT
 )

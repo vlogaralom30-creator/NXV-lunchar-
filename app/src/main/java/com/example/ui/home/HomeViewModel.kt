@@ -136,6 +136,22 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         _animeThemeState.value = _animeThemeState.value.copy(customCharacterUri = uri)
     }
 
+    fun toggleAnimeIconPack(enabled: Boolean) {
+        _animeThemeState.value = _animeThemeState.value.copy(isAnimeIconPackEnabled = enabled)
+    }
+
+    fun updateWidgetCornerRadius(radiusDp: Int) {
+        _animeThemeState.value = _animeThemeState.value.copy(widgetCornerRadiusDp = radiusDp)
+    }
+
+    fun updateWidgetOpacity(opacity: Float) {
+        _animeThemeState.value = _animeThemeState.value.copy(widgetOpacity = opacity)
+    }
+
+    fun updateWidgetStyle(style: String) {
+        _animeThemeState.value = _animeThemeState.value.copy(widgetStyle = style)
+    }
+
     override fun onCleared() {
         super.onCleared()
         appManagerRepository.cleanup()

@@ -33,6 +33,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BatteryFull
+import androidx.compose.material.icons.filled.FormatQuote
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -57,21 +58,65 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.R
+import com.example.data.model.AnimeCharacter
 import com.example.data.model.AnimeThemeState
 import com.example.data.repository.AppIconPackManager
 
 /**
- * Device Stats Card Widget: Battery, Storage, CPU/RAM & Android Version
+ * Common translucent glassmorphism widget container matching Anime design specs.
+ */
+@Composable
+fun AnimeWidgetContainer(
+    animeState: AnimeThemeState,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val cornerRadiusDp = animeState.widgetCornerRadiusDp.dp
+    val opacity = animeState.widgetOpacity
+    val accentColor = Color(android.graphics.Color.parseColor(animeState.selectedCharacter.accentColorHex))
+
+    val containerColor = when (animeState.widgetStyle) {
+        "GLASS_NEON" -> Color(0xFF1E293B).copy(alpha = opacity)
+        "MINIMAL_SOLID" -> Color(0xFF0F172A).copy(alpha = 0.95f)
+        "CYBER_TRANSLUCENT" -> Color(0xFF020617).copy(alpha = (opacity * 0.75f).coerceAtLeast(0.4f))
+        else -> Color(0xFF1E293B).copy(alpha = opacity)
+    }
+
+    val borderColor = when (animeState.widgetStyle) {
+        "GLASS_NEON" -> accentColor.copy(alpha = 0.8f)
+        "MINIMAL_SOLID" -> Color(0xFF334155)
+        "CYBER_TRANSLUCENT" -> accentColor
+        else -> accentColor
+    }
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        shape = RoundedCornerShape(cornerRadiusDp),
+        modifier = modifier
+            .fillMaxWidth()
+            .border(
+                width = if (animeState.widgetStyle == "GLASS_NEON" || animeState.widgetStyle == "CYBER_TRANSLUCENT") 1.5.dp else 1.dp,
+                color = borderColor,
+                shape = RoundedCornerShape(cornerRadiusDp)
+            )
+    ) {
+        content()
+    }
+}
+
+/**
+ * Device Stats Card Widget
  */
 @Composable
 fun DeviceStatsCard(
@@ -91,7 +136,6 @@ fun DeviceStatsCard(
 
             val stat = StatFs(Environment.getDataDirectory().path)
             val bytesAvailable = stat.availableBlocksLong * stat.blockSizeLong
-            val totalBytes = stat.blockCountLong * stat.blockSizeLong
             val freeGb = bytesAvailable / (1024 * 1024 * 1024)
             storageText = "$freeGb GB Free"
         } catch (_: Exception) {
@@ -99,13 +143,7 @@ fun DeviceStatsCard(
         }
     }
 
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
-        shape = RoundedCornerShape(18.dp),
-        modifier = modifier
-            .fillMaxWidth()
-            .border(1.dp, Color(0xFF334155), RoundedCornerShape(18.dp))
-    ) {
+    AnimeWidgetContainer(animeState = animeState, modifier = modifier) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -130,7 +168,7 @@ fun DeviceStatsCard(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
-                        .background(accentColor.copy(alpha = 0.2f))
+                        .background(accentColor.copy(alpha = 0.25f))
                         .padding(horizontal = 8.dp, vertical = 2.dp)
                 ) {
                     Text(
@@ -187,7 +225,7 @@ private fun StatItem(
         modifier = modifier.padding(4.dp)
     ) {
         Icon(imageVector = icon, contentDescription = title, tint = accentColor, modifier = Modifier.size(16.dp))
-        Text(text = title, color = Color.Gray, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+        Text(text = title, color = Color.LightGray, fontSize = 9.sp, fontWeight = FontWeight.Bold)
         Text(text = value, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
     }
 }
@@ -202,13 +240,7 @@ fun ProfileWeatherCard(
 ) {
     val accentColor = Color(android.graphics.Color.parseColor(animeState.selectedCharacter.accentColorHex))
 
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
-        shape = RoundedCornerShape(18.dp),
-        modifier = modifier
-            .fillMaxWidth()
-            .border(1.dp, Color(0xFF334155), RoundedCornerShape(18.dp))
-    ) {
+    AnimeWidgetContainer(animeState = animeState, modifier = modifier) {
         Row(
             modifier = Modifier
                 .padding(14.dp)
@@ -240,7 +272,7 @@ fun ProfileWeatherCard(
                 )
                 Text(
                     text = animeState.userLocation,
-                    color = Color.Gray,
+                    color = Color.LightGray,
                     fontSize = 10.sp
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -249,6 +281,67 @@ fun ProfileWeatherCard(
                     color = accentColor,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Anime Character Mantra / Quote Widget
+ */
+@Composable
+fun AnimeMantraQuoteWidget(
+    animeState: AnimeThemeState,
+    modifier: Modifier = Modifier
+) {
+    val accentColor = Color(android.graphics.Color.parseColor(animeState.selectedCharacter.accentColorHex))
+
+    val (quote, author) = when (animeState.selectedCharacter) {
+        AnimeCharacter.LUFFY -> "If you don't take risks, you can't create a future!" to "Monkey D. Luffy"
+        AnimeCharacter.NARUTO -> "I never go back on my word. That's my nindo: my ninja way!" to "Naruto Uzumaki"
+        AnimeCharacter.TANJIRO -> "No matter how many people you lose, you have to go on living!" to "Tanjiro Kamado"
+    }
+
+    AnimeWidgetContainer(animeState = animeState, modifier = modifier) {
+        Row(
+            modifier = Modifier
+                .padding(14.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(accentColor.copy(alpha = 0.2f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.FormatQuote,
+                    contentDescription = "Mantra",
+                    tint = accentColor,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "\"$quote\"",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "— $author",
+                    color = accentColor,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Black
                 )
             }
         }
@@ -266,7 +359,6 @@ fun VinylMusicWidget(
     val accentColor = Color(android.graphics.Color.parseColor(animeState.selectedCharacter.accentColorHex))
     var isPlaying by remember { mutableStateOf(true) }
 
-    // Spinning Vinyl Animation
     val infiniteTransition = rememberInfiniteTransition(label = "vinyl_spin")
     val rotationAngle by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -278,19 +370,12 @@ fun VinylMusicWidget(
         label = "vinyl_rotation"
     )
 
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
-        shape = RoundedCornerShape(18.dp),
-        modifier = modifier
-            .fillMaxWidth()
-            .border(1.dp, Color(0xFF334155), RoundedCornerShape(18.dp))
-    ) {
+    AnimeWidgetContainer(animeState = animeState, modifier = modifier) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Vinyl Disc Image
                 Image(
                     painter = painterResource(id = R.drawable.img_vinyl_record_1788768035546),
                     contentDescription = "Vinyl Disc",
@@ -310,7 +395,7 @@ fun VinylMusicWidget(
                     )
                     Text(
                         text = "Chappell Roan • Anime Edition",
-                        color = Color.Gray,
+                        color = Color.LightGray,
                         fontSize = 11.sp
                     )
                     Spacer(modifier = Modifier.height(6.dp))
@@ -328,7 +413,6 @@ fun VinylMusicWidget(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Music Controls
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
@@ -360,7 +444,7 @@ fun VinylMusicWidget(
 }
 
 /**
- * World Map Card Widget Illustration
+ * World Map Card Widget
  */
 @Composable
 fun WorldMapCard(
@@ -369,13 +453,7 @@ fun WorldMapCard(
 ) {
     val accentColor = Color(android.graphics.Color.parseColor(animeState.selectedCharacter.accentColorHex))
 
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
-        shape = RoundedCornerShape(18.dp),
-        modifier = modifier
-            .fillMaxWidth()
-            .border(1.dp, Color(0xFF334155), RoundedCornerShape(18.dp))
-    ) {
+    AnimeWidgetContainer(animeState = animeState, modifier = modifier) {
         Column(modifier = Modifier.padding(14.dp)) {
             Box(
                 modifier = Modifier
@@ -385,7 +463,6 @@ fun WorldMapCard(
                     .background(Color(0xFF0F172A)),
                 contentAlignment = Alignment.Center
             ) {
-                // Vector Map Lines Canvas
                 Canvas(modifier = Modifier.fillMaxWidth()) {
                     val w = size.width
                     val h = size.height
@@ -466,7 +543,6 @@ fun AnimeIconGrid(
                     }
                 }
 
-                // All Apps Button
                 Box(
                     modifier = Modifier
                         .size(46.dp)

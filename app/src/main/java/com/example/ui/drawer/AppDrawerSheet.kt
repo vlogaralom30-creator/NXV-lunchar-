@@ -47,6 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.AnimationConfig
+import com.example.data.model.AnimeThemeState
 import com.example.data.model.AppItem
 import com.example.data.model.AppSortOrder
 import com.example.data.model.IconShape
@@ -61,6 +62,7 @@ fun AppDrawerSheet(
     sortOrder: AppSortOrder,
     sheetState: SheetState,
     animationConfig: AnimationConfig = AnimationConfig(),
+    animeThemeState: AnimeThemeState? = null,
     onDismiss: () -> Unit,
     onAppClick: (String) -> Unit,
     onAppLongClick: (AppItem) -> Unit,
@@ -168,6 +170,9 @@ fun AppDrawerSheet(
                         AppIconItem(
                             label = app.label,
                             iconBitmap = app.iconBitmap,
+                            packageName = app.packageName,
+                            animeCharacter = animeThemeState?.selectedCharacter,
+                            isAnimeIconPackEnabled = animeThemeState?.isAnimeIconPackEnabled ?: false,
                             iconSize = 44.dp,
                             iconShape = iconShape,
                             showLabel = true,
@@ -215,6 +220,9 @@ fun AppDrawerSheet(
                     AppIconItem(
                         label = app.label,
                         iconBitmap = app.iconBitmap,
+                        packageName = app.packageName,
+                        animeCharacter = animeThemeState?.selectedCharacter,
+                        isAnimeIconPackEnabled = animeThemeState?.isAnimeIconPackEnabled ?: false,
                         iconSize = 52.dp,
                         iconShape = iconShape,
                         showLabel = true,

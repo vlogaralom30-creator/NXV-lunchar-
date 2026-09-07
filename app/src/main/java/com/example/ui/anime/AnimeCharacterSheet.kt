@@ -48,7 +48,10 @@ fun AnimeCharacterSheet(
     onSelectCharacter: (AnimeCharacter) -> Unit,
     onToggleNavbar: (Boolean) -> Unit,
     onSelectLanguage: (String) -> Unit,
-    onOpenWallpaperManager: () -> Unit = {}
+    onOpenWallpaperManager: () -> Unit = {},
+    onToggleIconPack: (Boolean) -> Unit = {},
+    onUpdateWidgetStyle: (String) -> Unit = {},
+    onUpdateWidgetCornerRadius: (Int) -> Unit = {}
 ) {
     val activeCharacter = animeThemeState.selectedCharacter
     val accentColor = Color(android.graphics.Color.parseColor(activeCharacter.accentColorHex))
@@ -147,22 +150,123 @@ fun AnimeCharacterSheet(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Navbar Toggle Button
-            Button(
-                onClick = { onToggleNavbar(!animeThemeState.isNavbarEnabled) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (animeThemeState.isNavbarEnabled) Color(0xFF059669) else Color(0xFFDC2626)
-                ),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth().height(44.dp)
+            // Navbar & Anime Icon Pack Toggles
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Text(
-                    text = if (animeThemeState.isNavbarEnabled) "NAVBAR ON" else "NAVBAR OFF",
-                    color = Color.White,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 2.sp
-                )
+                Button(
+                    onClick = { onToggleNavbar(!animeThemeState.isNavbarEnabled) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (animeThemeState.isNavbarEnabled) Color(0xFF059669) else Color(0xFFDC2626)
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.weight(1f).height(44.dp)
+                ) {
+                    Text(
+                        text = if (animeThemeState.isNavbarEnabled) "NAVBAR ON" else "NAVBAR OFF",
+                        color = Color.White,
+                        fontWeight = FontWeight.Black,
+                        fontSize = 11.sp
+                    )
+                }
+
+                Button(
+                    onClick = { onToggleIconPack(!animeThemeState.isAnimeIconPackEnabled) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (animeThemeState.isAnimeIconPackEnabled) accentColor else Color(0xFF334155)
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.weight(1f).height(44.dp)
+                ) {
+                    Text(
+                        text = if (animeThemeState.isAnimeIconPackEnabled) "ICON PACK ON" else "ICON PACK OFF",
+                        color = Color.White,
+                        fontWeight = FontWeight.Black,
+                        fontSize = 11.sp
+                    )
+                }
             }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Translucent Widget Style Selector Header
+            Text(
+                text = "TRANSLUCENT WIDGET STYLE",
+                color = Color.Gray,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.2.sp
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+
+            val widgetStyles = listOf("GLASS_NEON" to "GLASS NEON", "MINIMAL_SOLID" to "MINIMAL", "CYBER_TRANSLUCENT" to "CYBER")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                widgetStyles.forEach { (styleKey, styleName) ->
+                    val isSelected = animeThemeState.widgetStyle == styleKey
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (isSelected) accentColor else Color(0xFF1E293B))
+                            .border(1.dp, if (isSelected) Color.White else Color(0xFF334155), RoundedCornerShape(12.dp))
+                            .clickable { onUpdateWidgetStyle(styleKey) }
+                            .padding(vertical = 10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = styleName,
+                            color = Color.White,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Widget Corner Roundness Selector Header
+            Text(
+                text = "WIDGET CORNER ROUNDNESS",
+                color = Color.Gray,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.2.sp
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+
+            val corners = listOf(16 to "16 dp", 22 to "22 dp", 28 to "28 dp", 36 to "36 dp")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                corners.forEach { (radius, label) ->
+                    val isSelected = animeThemeState.widgetCornerRadiusDp == radius
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(radius.dp))
+                            .background(if (isSelected) accentColor else Color(0xFF1E293B))
+                            .border(1.dp, if (isSelected) Color.White else Color(0xFF334155), RoundedCornerShape(radius.dp))
+                            .clickable { onUpdateWidgetCornerRadius(radius) }
+                            .padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = label,
+                            color = Color.White,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
 
             Spacer(modifier = Modifier.height(14.dp))
 

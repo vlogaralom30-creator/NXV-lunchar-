@@ -34,14 +34,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.data.model.AnimeCharacter
 import com.example.data.model.IconShape
+import com.example.data.provider.AnimeIconProvider
 import com.example.ui.theme.LauncherThemeEngine
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppIconItem(
     label: String,
     iconBitmap: Bitmap?,
+    packageName: String = "",
+    animeCharacter: AnimeCharacter? = null,
+    isAnimeIconPackEnabled: Boolean = false,
     iconSize: Dp = 52.dp,
     iconShape: IconShape = IconShape.SQUIRCLE,
     showLabel: Boolean = true,
@@ -53,6 +59,17 @@ fun AppIconItem(
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val animeIconProvider = remember { AnimeIconProvider() }
+
+    val displayBitmap = remember(iconBitmap, packageName, label, isAnimeIconPackEnabled, animeCharacter) {
+        if (isAnimeIconPackEnabled && animeCharacter != null) {
+            animeIconProvider.getAppIcon(context, packageName, label, animeCharacter) ?: iconBitmap
+        } else {
+            iconBitmap
+        }
+    }
+
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
@@ -106,9 +123,9 @@ fun AppIconItem(
                 .clip(shape)
                 .background(Color.White.copy(alpha = 0.05f))
         ) {
-            if (iconBitmap != null) {
+            if (displayBitmap != null) {
                 Image(
-                    bitmap = iconBitmap.asImageBitmap(),
+                    bitmap = displayBitmap.asImageBitmap(),
                     contentDescription = label,
                     modifier = Modifier
                         .size(iconSize)

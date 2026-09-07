@@ -258,6 +258,13 @@ fun HomeScreen(
 
                         Spacer(modifier = Modifier.height(14.dp))
 
+                        com.example.ui.anime.AnimeMantraQuoteWidget(
+                            animeState = animeThemeState,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
                         WorldMapCard(
                             animeState = animeThemeState,
                             modifier = Modifier.padding(horizontal = 16.dp)
@@ -293,6 +300,9 @@ fun HomeScreen(
                                     AppIconItem(
                                         label = label,
                                         iconBitmap = icon,
+                                        packageName = item.packageName,
+                                        animeCharacter = animeThemeState.selectedCharacter,
+                                        isAnimeIconPackEnabled = animeThemeState.isAnimeIconPackEnabled,
                                         iconSize = themeConfig.iconSizeDp.dp,
                                         iconShape = themeConfig.iconShape,
                                         showLabel = themeConfig.showAppLabels,
@@ -360,6 +370,7 @@ fun HomeScreen(
                     sortOrder = themeConfig.appDrawerSortOrder,
                     sheetState = drawerSheetState,
                     animationConfig = animConfig,
+                    animeThemeState = animeThemeState,
                     onDismiss = { showDrawer = false },
                     onAppClick = { packageName ->
                         handleLaunchApp(packageName)
@@ -427,7 +438,10 @@ fun HomeScreen(
                 onSelectCharacter = { character -> viewModel.selectAnimeCharacter(character) },
                 onToggleNavbar = { enabled -> viewModel.toggleNavbar(enabled) },
                 onSelectLanguage = { lang -> viewModel.selectLanguage(lang) },
-                onOpenWallpaperManager = { showWallpaperSheet = true }
+                onOpenWallpaperManager = { showWallpaperSheet = true },
+                onToggleIconPack = { enabled -> viewModel.toggleAnimeIconPack(enabled) },
+                onUpdateWidgetStyle = { style -> viewModel.updateWidgetStyle(style) },
+                onUpdateWidgetCornerRadius = { radius -> viewModel.updateWidgetCornerRadius(radius) }
             )
         }
 
